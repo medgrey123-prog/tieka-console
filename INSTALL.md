@@ -49,11 +49,15 @@ bash bin/env-check.sh
 ## 2. 安装 agent-autoloop
 
 ```bash
-bash bin/install-autoloop.sh
+bash bin/install-autoloop.sh                 # 默认从仓库自带的 vendor 快照安装（离线）
 mkdir -p ~/tieka-try ~/tieka-code ~/tieka-work   # 规则模板里的三个工作目录
 agent-autoloop --version
 agent-autoloop status        # 中台/Agent/通道在线
 ```
+
+- **不需要网络/git**：`vendor/agent-autoloop/` 是上游固定快照，安装时会复制到 `~/.agent-autoloop/app`。
+- 想换成联网上游或内网 git：`AGENT_AUTOLOOP_REPO=... bash bin/install-autoloop.sh`。
+- 升级快照：本仓库维护者跑 `bash bin/vendor-update.sh`；目标机器跑 `bash bin/install-autoloop.sh --update`。
 
 - 脚本会检查 Node ≥ 24，未安装则从上游 `install.sh` 安装；macOS 会注册 launchd 常驻服务。
 - 安装完 `~/.agent-autoloop/{config.json,rules.json,master.key,...}` 会生成，`init` 会创建 owner/worker/source 密钥。

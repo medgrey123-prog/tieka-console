@@ -81,7 +81,7 @@ Agent 进程（DSH headless / Claude Code / Codex）
 
 | 取舍 | 原因 |
 |---|---|
-| 不打包 autoloop 源码，安装时从上游拉 | 上游 MIT 且更新频繁；我们只抽「用法」：三个 agent + 飞书通道 + 规则模板 |
+| 打包 autoloop 固定快照（vendor），不联网安装 | 目标是离线可复制：上游 MIT，快照 + 两处离线补丁（见 `vendor/README.md`）；升级靠 `bin/vendor-update.sh` 换快照 |
 | 去掉 Grok Bot / Muse / 桌面桥 / agent-desktop | 依赖 macOS 辅助功能+屏幕录制+坐标，跨机器复制不稳定；目标场景只需要 DSH/Claude/Codex |
 | 观察台只读会话文件，不截图 | 跨机器零权限依赖；Claude/Codex/DSH 都有稳定的落盘会话 |
 | 两个飞书机器人分开 | 审阅（卡片/审批）和任务（聊天指挥）权限与消息模型不同；一个 app 只能有一个 bot |

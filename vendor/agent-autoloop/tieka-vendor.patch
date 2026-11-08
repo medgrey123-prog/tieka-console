@@ -1,0 +1,79 @@
+--- a/install.sh
++++ b/install.sh
+@@ -22,7 +22,9 @@
+   exit 1
+ }
+ 
+-command -v git >/dev/null || { echo "需要 git。"; exit 1; }
++if [ "${AGENT_AUTOLOOP_VENDOR:-0}" != "1" ]; then
++  command -v git >/dev/null || { echo "需要 git。"; exit 1; }
++fi
+ command -v node >/dev/null || need_node "需要 Node.js 24 或更新，这台电脑上没找到。"
+ node -e 'process.exit(Number(process.versions.node.split(".")[0]) >= 24 ? 0 : 1)' || need_node "需要 Node.js 24 或更新，现在是 $(node -v)。"
+ 
+@@ -31,6 +33,17 @@
+ 
+ # A copy follows where it came from, and what came from the public repository follows its newest release, which has passed
+ # every check. cli/update.ts decides the same way, or an update would fail on a copy this had moved.
++# tieka-console 本地快照模式（AGENT_AUTOLOOP_VENDOR=1）：
++# 不联网、不依赖 git，直接把随套件仓库的 vendor/agent-autoloop 复制到 $APP。
++# 其余逻辑（链接 CLI、init、系统服务）与上游完全一致。
++if [ "${AGENT_AUTOLOOP_VENDOR:-0}" = "1" ]; then
++  [ -d "$REPO" ] || { echo "vendor 目录不存在：$REPO"; exit 1; }
++  [ -f "$REPO/bin/agent-autoloop.ts" ] || { echo "vendor 目录看起来不完整：$REPO"; exit 1; }
++  rm -rf "$APP"
++  mkdir -p "$APP"
++  (cd "$REPO" && tar -cf - --exclude .git .) | (cd "$APP" && tar -xf -)
++  echo "已从本地快照安装：$REPO"
++else
+ from="$REPO"
+ if [ -d "$APP/.git" ]; then
+   from=$(git -C "$APP" config --get remote.origin.url || true)
+@@ -50,6 +63,7 @@
+ else
+   git -C "$APP" pull --ff-only --quiet
+ fi
++fi
+ 
+ # Only a folder that's on PATH makes `agent-autoloop` work, and an agent-autoloop that isn't this one is someone else's to keep.
+ place_link() {
+--- a/host/version.ts
++++ b/host/version.ts
+@@ -1,17 +1,26 @@
+ // Which code this is: the release tag on its commit, if any, and the commit. The tag is the one place a version number is
+ // written: a number in a file still names the last release on every commit after it, and goes stale wherever it's copied.
+ import { execFileSync } from "node:child_process";
+-import { existsSync } from "node:fs";
++import { existsSync, readFileSync } from "node:fs";
+ import path from "node:path";
+ 
+ const ROOT = path.join(import.meta.dirname, "..");
+ 
++/** tieka-console：本地快照（vendor）没有 .git，用一个随快照带进来的元数据文件补上来源版本。 */
++function vendorMeta(root) {
++  try {
++    return JSON.parse(readFileSync(path.join(root, ".tieka-vendor.json"), "utf8"));
++  } catch {
++    return {};
++  }
++}
++
+ /** What was deployed, or the checkout's commit. Git says: after a gc a branch's ref is no longer a file of its own. */
+ export function commitOf(root = ROOT) {
+   if (process.env.AGENT_AUTOLOOP_COMMIT) return process.env.AGENT_AUTOLOOP_COMMIT;
+   try {
+     // Only a checkout has its own .git entry; unpacked copies must not inherit a parent repository's commit.
+-    if (!existsSync(path.join(root, ".git"))) return "dev";
++    if (!existsSync(path.join(root, ".git"))) return vendorMeta(root).commit || "dev";
+     const args = ["-C", root, "rev-parse", "HEAD"];
+     return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+   } catch {
+@@ -22,7 +31,7 @@
+ /** The release this commit is, if it is one. A try-out tag left on the same commit gives way to the release it became. */
+ export function releaseOf(root = ROOT) {
+   try {
+-    if (!existsSync(path.join(root, ".git"))) return null;
++    if (!existsSync(path.join(root, ".git"))) return vendorMeta(root).release || null;
+     const args = ["-C", root, "tag", "--points-at", "HEAD"];
+     const tags = execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).split("\n");
+     return tags.find((tag) => /^v\d+\.\d+\.\d+$/.test(tag)) ?? tags.find((tag) => /^v\d+\.\d+\.\d+-/.test(tag)) ?? null;

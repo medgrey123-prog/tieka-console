@@ -51,6 +51,7 @@ tieka-console/
 ├─ bots/dsh-lark-bot/                    # 任务发布机器人（vendored，含 macOS launchd 管理）
 ├─ feishu/                               # 两个飞书机器人的接入脚本
 ├─ configs/autoloop/                     # autoloop 规则模板（DSH/Claude/Codex）
+├─ vendor/agent-autoloop/                # 上游 autoloop 固定快照（MIT，离线安装，2.0MB）
 ├─ skills/
 │  ├─ agent-autoloop/                    # autoloop 官方 Skill（MIT，随上游）
 │  └─ feishu-task-ops/                   # 任务发布机器人的"输入设定"（headless DSH 行为规范）
@@ -70,6 +71,8 @@ tieka-console/
 - **lark-cli**：`npm i -g @larksuite/cli`
 - 国内飞书（open.feishu.cn）**两个企业自建应用**：审阅机器人 + 任务发布机器人（手册见 [docs/FEISHU-SETUP.md](docs/FEISHU-SETUP.md)）
 - 不需要：macOS 辅助功能/屏幕录制权限、Python（仅个别维护脚本会用到，可无）
+- **autoloop 已随仓库自带**（`vendor/agent-autoloop` 固定快照）：装 autoloop 不需要联网、不需要 git；
+  只有 npm 安装 lark-cli、建飞书应用需要网络
 
 ---
 
@@ -155,7 +158,7 @@ bash tests/e2e.sh --with-feishu --with-task-simulate
 
 ## 8. 来源与许可
 
-- 调度内核：[agent-autoloop](https://github.com/KKKKhazix/agent-autoloop)（MIT）
+- 调度内核：[agent-autoloop](https://github.com/KKKKhazix/agent-autoloop)（MIT；本仓库 `vendor/agent-autoloop/` 为固定快照，改动见 `vendor/README.md`）
 - 任务发布机器人：本仓库 `bots/dsh-lark-bot/`（vendored，来源与改动见 `bots/dsh-lark-bot/SOURCE.md`，MIT）
 - DSH 插件 API：DeepSeek Harness 的公开扩展点
 - 本仓库：MIT（见 [LICENSE](LICENSE)）

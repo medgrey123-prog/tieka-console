@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # 安装 agent-autoloop（上游开源项目），或检查本机已有的安装是否可用。
 #
-# - 从上游安装：https://github.com/KKKKhazix/agent-autoloop （MIT，Node ≥ 24，零依赖）
-# - 幂等：已经装好就只打印版本并跳过；要升级用 --update。
+# - 默认从本仓库 vendor/agent-autoloop 快照安装：不联网、不依赖 git，安装器自带（MIT，Node ≥ 24，零依赖）
+# - 想改用别处来源：设置 AGENT_AUTOLOOP_REPO（git 地址或本地仓库目录）
+# - 幂等：已经装好就只打印版本并跳过；要升级/刷新用 --update。
 # - 默认行为与上游 install.sh 一致（会装系统服务让它常驻）；想手动管理加 --no-service。
 #
 # 用法：
@@ -17,11 +18,20 @@
 # 本脚本不写任何密钥，也不改 DSH；装完用 bin/apply-autoloop-config.sh 生成规则。
 set -euo pipefail
 
-REPO="${AGENT_AUTOLOOP_REPO:-https://github.com/KKKKhazix/agent-autoloop}"
+REPO="${AGENT_AUTOLOOP_REPO:-}"
 INSTALL_URL="${AGENT_AUTOLOOP_INSTALL_URL:-https://raw.githubusercontent.com/KKKKhazix/agent-autoloop/main/install.sh}"
 HOME_DIR="${AGENT_AUTOLOOP_HOME:-$HOME/.agent-autoloop}"
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 KIT_DIR="$(cd "$SELF_DIR/.." && pwd)"
+VENDOR_DIR="$KIT_DIR/vendor/agent-autoloop"
+VENDOR_MODE=0
+if [ -z "$REPO" ] && [ -f "$VENDOR_DIR/install.sh" ]; then
+  REPO="$VENDOR_DIR"
+  VENDOR_MODE=1
+fi
+if [ -z "$REPO" ]; then
+  REPO="https://github.com/KKKKhazix/agent-autoloop"
+fi
 
 DRY_RUN=0
 UPDATE=0
@@ -43,9 +53,12 @@ usage() {
   -h, --help               显示本帮助
 
 环境变量：
-  AGENT_AUTOLOOP_REPO         git 仓库地址或本地仓库目录（离线/内网）
+  AGENT_AUTOLOOP_REPO         覆盖来源：git 仓库地址或本地仓库目录；不设则用本套件 vendor 快照
   AGENT_AUTOLOOP_HOME         安装目录，默认 ~/.agent-autoloop
-  AGENT_AUTOLOOP_INSTALL_URL  远程 install.sh 地址
+  AGENT_AUTOLOOP_INSTALL_URL  仅在 AGENT_AUTOLOOP_REPO 指向远程仓库时用于下载 install.sh
+
+默认完全离线：从 vendor/agent-autoloop 复制安装，不需要网络和 git；装完 `agent-autoloop update` 会被
+本指南接管（用本脚本 --update 刷新快照），不会去拉上游。
 
 装完后下一步：
   mkdir -p ~/tieka-try ~/tieka-code ~/tieka-work
@@ -177,7 +190,13 @@ EOF
 
 # ---------------------------------------------------------------- 安装动作
 install_script() {
-  # 远程：先下载到临时文件；本地仓库：直接用仓库里的 install.sh。
+  # vendor：直接用随套件快照里的 install.sh（脚本内部走本地复制，不联网）。
+  if [ "$VENDOR_MODE" = "1" ]; then
+    say "使用随套件本地快照：$REPO"
+    run_installer "$REPO/install.sh"
+    return
+  fi
+  # 远程：先下载到临时文件；用户指定的本地仓库：直接用仓库里的 install.sh。
   if [ -d "$REPO" ]; then
     [ -f "$REPO/install.sh" ] || fail "本地仓库里没有 install.sh：$REPO"
     say "使用本地仓库：$REPO"
@@ -210,16 +229,20 @@ run_installer() {
     args+=("${INIT_ARGS[@]}")
   fi
   if [ "${#args[@]}" -gt 0 ]; then
-    AGENT_AUTOLOOP_REPO="$REPO" sh "$script" "${args[@]}"
+    AGENT_AUTOLOOP_VENDOR="$VENDOR_MODE" AGENT_AUTOLOOP_REPO="$REPO" sh "$script" "${args[@]}"
   else
-    AGENT_AUTOLOOP_REPO="$REPO" sh "$script"
+    AGENT_AUTOLOOP_VENDOR="$VENDOR_MODE" AGENT_AUTOLOOP_REPO="$REPO" sh "$script"
   fi
 }
 
 # ---------------------------------------------------------------- 主流程
 INIT_ARGS=()
 
-say "agent-autoloop 安装器（上游：https://github.com/KKKKhazix/agent-autoloop）"
+if [ "$VENDOR_MODE" = "1" ]; then
+  say "agent-autoloop 安装器（随套件快照；上游：https://github.com/KKKKhazix/agent-autoloop）"
+else
+  say "agent-autoloop 安装器（来源：$REPO）"
+fi
 say "安装目录：$HOME_DIR"
 if [ "$DRY_RUN" = 1 ]; then say "（--dry-run：只打印将执行的命令，不安装、不改本机）"; fi
 
@@ -232,12 +255,23 @@ if installed; then
   say "✅ 已安装：$(autoloop_version || true)"
   path_hint
   if [ "$UPDATE" = 1 ]; then
-    step "升级 agent-autoloop"
-    if [ "$DRY_RUN" = 1 ]; then
-      say "  + agent-autoloop update"
+    if [ "$VENDOR_MODE" = "1" ]; then
+      step "刷新本地快照安装（vendor）"
+      if [ "$DRY_RUN" = 1 ]; then
+        printf '  + AGENT_AUTOLOOP_VENDOR=1 AGENT_AUTOLOOP_REPO=%q sh %q/install.sh %s\n' \
+          "$REPO" "$REPO" "${PASSTHROUGH[*]-}"
+      else
+        install_script
+        say "✅ 已刷新：$(autoloop_version || true)"
+      fi
     else
-      run_autoloop update || fail "升级失败（agent-autoloop update 返回非 0）。原安装没删，可重试；网络/权限见 docs/ENVIRONMENT.md。"
-      say "✅ 已升级：$(autoloop_version || true)"
+      step "升级 agent-autoloop"
+      if [ "$DRY_RUN" = 1 ]; then
+        say "  + agent-autoloop update"
+      else
+        run_autoloop update || fail "升级失败（agent-autoloop update 返回非 0）。原安装没删，可重试；网络/权限见 docs/ENVIRONMENT.md。"
+        say "✅ 已升级：$(autoloop_version || true)"
+      fi
     fi
   else
     say "跳过安装（幂等）。要升级就加 --update。"
@@ -249,8 +283,12 @@ fi
 say "尚未安装。"
 
 step "准备首次安装"
-command -v git >/dev/null 2>&1 || fail "没找到 git。macOS：xcode-select --install；Linux：apt install git / dnf install git。"
-say "✅ $(git --version 2>/dev/null | head -n 1)"
+if [ "$VENDOR_MODE" = "1" ]; then
+  say "✅ 使用随套件快照（离线安装，不需要 git/网络）"
+else
+  command -v git >/dev/null 2>&1 || fail "没找到 git。macOS：xcode-select --install；Linux：apt install git / dnf install git。"
+  say "✅ $(git --version 2>/dev/null | head -n 1)"
+fi
 
 # 上游 init 需要至少一种 Agent：claude / codex / --command。只有 DSH 时自动用 DSH 初始化。
 if ! has_init_agent_flag; then
@@ -267,8 +305,8 @@ fi
 if [ "$DRY_RUN" = 1 ]; then
   step "（dry-run）将执行"
   if [ -d "$REPO" ]; then
-    printf '  + AGENT_AUTOLOOP_REPO=%q sh %q/install.sh %s %s\n' \
-      "$REPO" "$REPO" "${PASSTHROUGH[*]-}" "${INIT_ARGS[*]-}"
+    printf '  + AGENT_AUTOLOOP_VENDOR=%s AGENT_AUTOLOOP_REPO=%q sh %q/install.sh %s %s\n' \
+      "$VENDOR_MODE" "$REPO" "$REPO" "${PASSTHROUGH[*]-}" "${INIT_ARGS[*]-}"
   else
     say "  + curl -fsSL $INSTALL_URL -o <临时文件>"
     printf '  + AGENT_AUTOLOOP_REPO=%q sh <临时文件> %s %s\n' \
@@ -279,7 +317,11 @@ if [ "$DRY_RUN" = 1 ]; then
   exit 0
 fi
 
-step "从上游安装（首次；需要外网和 git）"
+if [ "$VENDOR_MODE" = "1" ]; then
+  step "从随套件快照安装（首次；离线）"
+else
+  step "从指定来源安装（首次；需要外网和 git）"
+fi
 install_script
 
 step "验证安装"

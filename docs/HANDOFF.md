@@ -5,6 +5,7 @@
 - GitHub（私有）：<https://github.com/medgrey123-prog/tieka-console>
 - 离线包：`tieka-console-<日期>.zip`（可从仓库根目录打包，排除 `.git`）
 - 对方只需要：一台 macOS、DSH 桌面版、Claude Code CLI、Codex CLI、Node ≥ 24、lark-cli，以及**两个自己的国内飞书应用**。
+  autoloop 已随仓库自带（`vendor/agent-autoloop` 固定快照），装 autoloop **不需要联网/git**。
 
 ## 1. 三种交付方式
 

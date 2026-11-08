@@ -152,7 +152,7 @@ lark-cli auth status
 ## 6. 网络
 
 - 首次安装：需要访问 GitHub（下载 install.sh + clone 上游仓库）。
-- 内网/离线机器：把 <https://github.com/KKKKhazix/agent-autoloop> clone 到本机任意目录，然后
+- 内网/离线机器：**默认就是离线**——`bin/install-autoloop.sh` 直接用仓库自带 `vendor/agent-autoloop/` 快照安装，不联网、不需要 git。若要改用别的来源，把上游 clone 到本机任意目录，然后
 
   ```bash
   AGENT_AUTOLOOP_REPO=/本地路径/agent-autoloop bash bin/install-autoloop.sh
