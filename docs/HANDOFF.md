@@ -10,20 +10,20 @@
 
 ### A. GitHub（推荐，能更新）
 
-私有仓库需要先把对方加为 collaborator：
-
-```bash
-# 把 <对方的GitHub用户名> 换成实际用户名
-gh api repos/medgrey123-prog/tieka-console/collaborators/<对方的GitHub用户名> -X PUT -f permission=push
-```
-
-对方机器上：
+仓库现在是**公开**的，对方直接 clone：
 
 ```bash
 git clone https://github.com/medgrey123-prog/tieka-console.git ~/tieka-console
 ```
 
-> 也可以把仓库改成公开：`gh repo edit medgrey123-prog/tieka-console --visibility public --accept-visibility-change-consequences`（仓库里没有密钥，但仍建议看完 `docs/SECURITY.md` 再决定）。
+如果以后想改回私有：`gh repo edit medgrey123-prog/tieka-console --visibility private --accept-visibility-change-consequences`，
+再把对方加为 collaborator：
+
+```bash
+gh api repos/medgrey123-prog/tieka-console/collaborators/<对方的GitHub用户名> -X PUT -f permission=push
+```
+
+（仓库里没有密钥；公开前仍建议过一遍 `docs/SECURITY.md`。）
 
 ### B. 离线 zip（对方不方便用 GitHub）
 

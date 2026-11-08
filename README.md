@@ -75,7 +75,7 @@ tieka-console/
 
 ## 4. 怎么装（两种方式）
 
-仓库：<https://github.com/medgrey123-prog/tieka-console>（私有；交接见 [docs/HANDOFF.md](docs/HANDOFF.md)）
+仓库：<https://github.com/medgrey123-prog/tieka-console>（公开；交接见 [docs/HANDOFF.md](docs/HANDOFF.md)）
 
 ### 方式 A：你亲手装（照 INSTALL.md 做）
 
