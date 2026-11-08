@@ -207,6 +207,17 @@ else
   if [ "$(json_get "$CONFIG_PATH" larkBin)" != "$WRAPPER" ]; then
     fail "配置里的 larkBin 不是 wrapper（$(json_get "$CONFIG_PATH" larkBin)），请检查生成逻辑"
   fi
+  # 自动补 testChatId（供 E2E --with-task-simulate）：从「首条消息」日志里取 chat_id
+  if [ -n "$OWNER" ] && [ -z "$(json_get "$CONFIG_PATH" testChatId)" ]; then
+    CHAT_ID=$(grep -hoE 'chat=oc_[a-z0-9]+' "$BOT_ROOT"/logs/bot-*.log 2>/dev/null | tail -1 | cut -d= -f2)
+    if [ -n "$CHAT_ID" ]; then
+      node -e 'const fs=require("fs");const p=process.argv[1];const c=JSON.parse(fs.readFileSync(p,"utf8"));if(!c.testChatId){c.testChatId=process.argv[2];fs.writeFileSync(p,JSON.stringify(c,null,2)+"\n")}' "$CONFIG_PATH" "$CHAT_ID" \
+        && chmod 600 "$CONFIG_PATH" 2>/dev/null || true
+      ok "已从日志自动补 testChatId（E2E --with-task-simulate 可用）"
+    else
+      warn "日志里还没看到 chat_id；E2E 的 --with-task-simulate 需要它（可先给机器人发一句话再重跑本脚本）"
+    fi
+  fi
 fi
 
 # ---------------------------------------------------------------- 4. launchd
