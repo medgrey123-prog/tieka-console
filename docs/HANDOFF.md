@@ -30,7 +30,7 @@ git clone https://github.com/medgrey123-prog/tieka-console.git ~/tieka-console
 在本机打包（排除 git 历史）：
 
 ```bash
-cd "/Users/megrey/手表dph 项目"
+cd ..    # 进入 tieka-console 的上一级目录
 zip -r tieka-console-$(date +%Y%m%d).zip tieka-console -x "tieka-console/.git/*"
 ```
 
