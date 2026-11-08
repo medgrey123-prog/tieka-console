@@ -4,6 +4,12 @@
 
 ## 0. 一键定位
 
+先跑流程化 E2E（只读，不发消息），它会告诉你哪一层断了：
+
+```bash
+cd ~/tieka-console && bash tests/e2e.sh
+```
+
 ```bash
 cd ~/tieka-console
 ./verify-install.sh --dsh-url http://127.0.0.1:<DSH端口> \

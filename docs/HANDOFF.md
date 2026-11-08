@@ -70,7 +70,15 @@ bash bin/env-check.sh      # 先确认环境
 
 ## 4. 验收清单（对方装完后跑）
 
-见 [README.md](../README.md) 第 5 节与 [INSTALL.md](../INSTALL.md) 第 7 步；核心 7 项：
+先跑流程化 E2E：
+
+```bash
+cd ~/tieka-console
+bash tests/e2e.sh --with-feishu --with-task-simulate
+```
+
+它会把「环境 → autoloop → DSH 面板/观察台 → 审阅机器人 → 任务机器人（真执行+真回飞书）→ DSH headless」逐层验证；
+只读模式 `bash tests/e2e.sh` 不发任何消息。详见 [README.md](../README.md) 第 5 节与 [INSTALL.md](../INSTALL.md) 第 7 步；核心 7 项：
 
 1. `agent-autoloop status` 中台/Agent/通道在线
 2. DSH 面板出现「铁卡老弟」，Agents 页有 3 个 Agent

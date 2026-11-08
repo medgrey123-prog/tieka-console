@@ -38,6 +38,8 @@
    → 让用户去飞书给任务机器人发「你好」→ 拿 open_id → 重跑加 --owner   # G3
 7  POST /agents/notify/test 与 /agents/notify/report 验证汇报
    ./verify-install.sh
+   bash tests/e2e.sh                      # 只读
+   bash tests/e2e.sh --with-feishu --with-task-simulate   # 真发/真跑，需要用户确认收到
 8  收尾：改名、权限复查、写变更说明
 ```
 

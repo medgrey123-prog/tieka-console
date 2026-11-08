@@ -112,6 +112,20 @@ DSH 会按施工单执行；你只需要在几个闸口点头/给凭据。
 | 6 | 异常提醒通 | `POST /agents/notify/test` 收到测试卡 |
 | 7 | Claude/Codex 可派活 | 用一条 `task.*` 事件或 cron 规则触发，autoloop run 里看到对应 agent 执行 |
 
+### 流程化 E2E（推荐）
+
+```bash
+# 1) 只读：环境 / 中台 / 面板 / 观察台 / 机器人配置（不发任何消息）
+bash tests/e2e.sh
+
+# 2) 真发：飞书「审阅机器人」测试卡 + autoloop 通知卡（会问你收到没）
+bash tests/e2e.sh --with-feishu
+
+# 3) 全量：再加上任务机器人完整链路（模拟入站 → DSH 执行 → 真回飞书）
+bash tests/e2e.sh --with-feishu --with-task-simulate
+```
+
+脚本会自动发现本机 DSH 端口；`--yes` 用于无人值守（发送项标记为"待人工确认"）。
 详细命令见 [INSTALL.md](INSTALL.md) 第 7 步。
 
 ---

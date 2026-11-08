@@ -205,11 +205,22 @@ curl -s -X POST http://127.0.0.1:<DSH_PORT>/agents/notify/report
 { "reportIntervalSec": 1800, "quietHours": { "start": 23, "end": 8 } }
 ```
 
-3. 全量验收：
+3. 静态检查 + 流程化验收：
 
 ```bash
 cd ~/tieka-console && ./verify-install.sh
+bash tests/e2e.sh                         # 只读检查（自动发现 DSH 端口）
+bash tests/e2e.sh --with-feishu           # 真发：观察台测试卡 + 审阅机器人通知卡（需确认收到）
+bash tests/e2e.sh --with-feishu --with-task-simulate   # 全量：加任务机器人完整链路
 ```
+
+E2E 的覆盖：
+- 环境 / autoloop 中台 / owner 密钥 / rules
+- DSH 面板路由、观察台 3 个 Agent、30 分钟汇报配置、lite 版路由契约
+- 观察台 → autoloop → 飞书「审阅机器人」投递（`--with-feishu`）
+- 任务机器人：wrapper/profile/白名单/事件监听/launchd/doctor；`--with-task-simulate` 会真实走
+  「模拟入站消息 → DSH headless 执行 → 飞书回传」整条链路
+- DSH headless 单独冒烟
 
 再对照 README 第 5 节的 7 项清单手工点一遍（面板、飞书卡片、任务机器人、汇报、异常、Claude/Codex 派活）。
 
