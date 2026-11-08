@@ -1,0 +1,14 @@
+{
+  "name": "dsh-lark-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "用 Lark 消息遥控 DeepSeek Harness 的常驻机器人",
+  "bin": { "dsh-lark-bot": "./bot.mjs" },
+  "scripts": {
+    "start": "node bot.mjs",
+    "status": "node bot.mjs --status",
+    "simulate": "node bot.mjs --simulate"
+  },
+  "engines": { "node": ">=20" }
+}

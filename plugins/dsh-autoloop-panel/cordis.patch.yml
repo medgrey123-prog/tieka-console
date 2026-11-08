@@ -1,0 +1,6 @@
+# 铁卡老弟面板（autoloop 中控台）：Host 半把 ~/.agent-autoloop 中台代理成同源路由，
+# Client 半注册侧栏图标 + 主面板（总览 / Agents 两个 tab）。
+- insert:
+    - id: autoloop-panel
+      name: '@local/dsh-autoloop-panel'
+      config: {}

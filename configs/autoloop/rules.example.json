@@ -1,0 +1,101 @@
+{
+  "timezone": "Asia/Shanghai",
+  "askFirst": [
+    "删数据",
+    "停服",
+    "花钱",
+    "对外发消息",
+    "改产品方向",
+    "新建或轮换密钥",
+    "修改权限"
+  ],
+  "sources": {
+    "local": {
+      "name": "本机"
+    }
+  },
+  "agents": {
+    "dsh": {
+      "name": "DSH",
+      "worker": "{{WORKER}}",
+      "use": "command",
+      "command": [
+        "dsh",
+        "--profile",
+        "headless",
+        "{prompt}"
+      ]
+    },
+    "claude": {
+      "name": "Claude Code",
+      "worker": "{{WORKER}}",
+      "use": "claude",
+      "access": "edit"
+    },
+    "codex": {
+      "name": "Codex",
+      "worker": "{{WORKER}}",
+      "use": "codex",
+      "access": "read"
+    }
+  },
+  "channels": {
+    "desktop": {
+      "name": "桌面通知"
+    },
+    "feishu": {
+      "name": "审阅机器人",
+      "answerers": [
+        "{{OWNER_OPEN_ID}}"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "name": "试一下",
+      "when": {
+        "source": "local",
+        "types": [
+          "try.*"
+        ]
+      },
+      "to": "dsh",
+      "cwd": "{{CWD_TRY}}",
+      "prompt": "这是 agent-autoloop try 的试跑，不要改任何文件，不要做别的事。读资料文件。如果 answers 是空的，就用 ask 问一个问题：title 写「试跑：选一个颜色」，text 写「这是一次试跑，选哪个都行。」，options 写 [\"蓝色\",\"绿色\"]，key 写 try-color，第一行结论写「没事可做：问了一个问题」。如果 answers 不是空的，第一行结论写「你选了某某，试跑通过」，把某某换成 answers 里选的那一项，不附回执。"
+    },
+    {
+      "name": "每日简报",
+      "when": {
+        "cron": "0 8 * * *"
+      },
+      "to": "dsh",
+      "cwd": "{{CWD_WORK}}",
+      "tell": "always",
+      "prompt": "读资料文件。整理昨天的工作和待办：第一行写一句结论（今天最该先做的一件事），下面最多五条，分成「昨天做完的」「今天要做的」「等人拍板的」。没有新进展就第一行写「没事可做：昨天没有新进展」。"
+    },
+    {
+      "name": "每周复盘",
+      "when": {
+        "cron": "0 19 * * 0"
+      },
+      "to": "claude",
+      "cwd": "{{CWD_WORK}}",
+      "tell": "always",
+      "prompt": "读资料文件。回顾过去一周：第一行写一句结论，下面最多六条，分成「做成了什么」「卡在哪」「下周建议」。需要本人决定的事用 ask 问，不要自己拍板；没有可复盘的就第一行写「没事可做：这周没有新进展」。"
+    },
+    {
+      "name": "代码任务",
+      "when": {
+        "source": "local",
+        "types": [
+          "task.*"
+        ]
+      },
+      "to": "codex",
+      "cwd": "{{CWD_CODE}}",
+      "parallel": 2,
+      "prompt": "读资料文件里的事件，按 event 的 detail 要求在项目里干活：先核实当前事实，做最小的改动，改完自己检查；同一件事可能被叫两次，先看是不是已经做过。不能自己决定的事用 ask 问；需要本人恢复的连接或权限，第一行写「待你处理：」并用 ask 说明恢复后怎么继续。第一行写一句结论。"
+    }
+  ],
+  "elsewhere": []
+}

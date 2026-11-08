@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Agent 观察台 lite",
+    "description": "看 Claude / Codex / DSH 各自干到哪一步：只读本地会话文件，不截图、不 OCR；异常与 30 分钟汇报经飞书推送。"
+  }
+}

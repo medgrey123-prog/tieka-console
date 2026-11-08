@@ -1,0 +1,7 @@
+# Agent 观察台 lite：Host 半只读本机 Claude / Codex / DSH 三个 CLI Agent 的会话文件，
+# 在 DSH 自带 HTTP server 上注册 /agents/* 同源路由，并注册只读工具 agents_status。
+# 不截图、不 OCR、不注册任何 GUI 采集。
+- insert:
+    - id: agent-observer
+      name: '@local/dsh-agent-observer'
+      config: {}

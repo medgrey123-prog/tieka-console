@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Agent Observer lite",
+    "description": "See what Claude, Codex and DSH are doing right now: read-only session files, no screenshots or OCR; error alerts and a 30-minute report go out via Feishu."
+  }
+}

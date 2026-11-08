@@ -1,0 +1,30 @@
+{
+  "name": "@local/dsh-agent-observer",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent 观察台 lite：采集本机 Claude / Codex / DSH 三个 CLI Agent 的会话进度，暴露 /agents/* 同源路由与只读工具，并经 autoloop 中台推飞书异常提醒与 30 分钟周期汇报。",
+  "exports": {
+    ".": "./lib/index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "locale",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "meta": {
+    "title": "Agent 观察台 lite",
+    "description": "看 Claude / Codex / DSH 各自干到哪一步：只读本地会话文件，不截图、不 OCR；异常与 30 分钟汇报经飞书推送。"
+  },
+  "license": "MIT"
+}

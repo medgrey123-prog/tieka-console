@@ -1,0 +1,20 @@
+{
+  "_note": "这是配置模板，不是可直接运行的文件。安装时会把 larkBin / workdir 里的家目录占位符替换成真实路径；请运行 feishu/setup-task-bot.sh 生成 ~/.dsh-lark-bot/config.json（本目录不放真实配置，bot.mjs 优先读前者）。",
+  "dshProfile": "headless",
+  "dshEntry": "",
+  "dshBin": "",
+  "larkBin": "$HOME/.dsh-lark-bot/lark-feishu-task.sh",
+  "workdir": "$HOME",
+  "ownerOpenId": "",
+  "allowedUsers": [],
+  "allowGroups": false,
+  "maxConcurrency": 1,
+  "taskTimeoutMs": 1800000,
+  "progressIntervalMs": 8000,
+  "maxProgressEdits": 40,
+  "finalInlineMaxChars": 2500,
+  "chunkChars": 3500,
+  "maxMessageAgeMs": 900000,
+  "testChatId": "",
+  "logRetentionDays": 7
+}
