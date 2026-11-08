@@ -54,7 +54,7 @@ tieka-console/
 ├─ skills/
 │  ├─ agent-autoloop/                    # autoloop 官方 Skill（MIT，随上游）
 │  └─ feishu-task-ops/                   # 任务发布机器人的"输入设定"（headless DSH 行为规范）
-└─ docs/                                 # 架构、飞书配置手册、环境、排障、安全
+└─ docs/                                 # 架构、飞书配置手册、环境、排障、安全、交接
 ```
 
 ---
@@ -75,10 +75,12 @@ tieka-console/
 
 ## 4. 怎么装（两种方式）
 
+仓库：<https://github.com/medgrey123-prog/tieka-console>（私有；交接见 [docs/HANDOFF.md](docs/HANDOFF.md)）
+
 ### 方式 A：你亲手装（照 INSTALL.md 做）
 
 ```bash
-git clone <this-repo> ~/tieka-console
+git clone https://github.com/medgrey123-prog/tieka-console.git ~/tieka-console
 cd ~/tieka-console
 bash bin/env-check.sh          # 先看缺什么
 open INSTALL.md                # 按 0→8 步做
@@ -140,6 +142,6 @@ DSH 会按施工单执行；你只需要在几个闸口点头/给凭据。
 ## 8. 来源与许可
 
 - 调度内核：[agent-autoloop](https://github.com/KKKKhazix/agent-autoloop)（MIT）
-- 任务发布机器人：[dsh-lark-bot](https://example.invalid)（随本仓库 vendored，MIT）
+- 任务发布机器人：本仓库 `bots/dsh-lark-bot/`（vendored，来源与改动见 `bots/dsh-lark-bot/SOURCE.md`，MIT）
 - DSH 插件 API：DeepSeek Harness 的公开扩展点
 - 本仓库：MIT（见 [LICENSE](LICENSE)）
