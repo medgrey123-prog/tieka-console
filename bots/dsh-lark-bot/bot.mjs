@@ -392,7 +392,7 @@ async function editMessage(messageId, markdown) {
     ['im', '+messages-edit', '--as', 'bot', '--message-id', messageId, '--markdown', '-'],
     { input: markdown },
   );
-  return res.ok;
+  return res;
 }
 
 // ─────────────────────────── 文本工具 ───────────────────────────
@@ -500,7 +500,7 @@ async function runTask(task) {
   const cs = chatState(chatId);
   const startedAt = Date.now();
 
-  const ackId = await sendMessage(chatId, `🤔 收到，开始执行…\n> ${oneLine(text, 100)}`);
+  let ackId = await sendMessage(chatId, `🤔 收到，开始执行…\n> ${oneLine(text, 100)}`);
   const progress = {
     steps: 0,
     lastTool: '',
@@ -511,6 +511,7 @@ async function runTask(task) {
     editing: false,
     edits: 0,
     lastRender: '',
+    rotations: 0,
     stopped: false,
   };
 
@@ -634,7 +635,18 @@ async function runTask(task) {
       progress.editing = true;
       progress.edits++;
       try {
-        await editMessage(ackId, content);
+        const res = await editMessage(ackId, content);
+        if (!res.ok && Number(res.json?.error?.code) === 230072) {
+          // 飞书单条消息有编辑次数上限：换一条新消息继续，避免「执行中」气泡卡死。
+          const rotated = await sendMessage(chatId, content);
+          if (rotated) {
+            ackId = rotated;
+            progress.edits = 0;
+            progress.lastRender = content;
+            progress.rotations = (progress.rotations || 0) + 1;
+            logInfo(`进度消息达到编辑上限，已换新消息继续（rotations=${progress.rotations}）`);
+          }
+        }
       } finally {
         progress.editing = false;
       }
@@ -682,8 +694,8 @@ async function runTask(task) {
   // ── 回传结果 ──
   const editOrSend = async (md) => {
     if (ackId && progress.edits < CFG.maxProgressEdits + 5) {
-      const done = await editMessage(ackId, md);
-      if (done) return;
+      const res = await editMessage(ackId, md);
+      if (res.ok) return;
     }
     await sendMessage(chatId, md);
   };
